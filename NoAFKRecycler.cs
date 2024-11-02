@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("No AFK Recycler", "VisEntities", "1.0.0")]
+    [Info("No AFK Recycler", "VisEntities", "1.1.0")]
     [Description("Prevents players from staying afk while using recyclers.")]
     public class NoAFKRecycler : RustPlugin
     {
@@ -139,6 +139,7 @@ namespace Oxide.Plugins
 
             _afkTimers[player] = timer.Once(_config.DurationUntilKickingPlayerFromRecyclerForInactivity, () =>
             {
+                CollectRecyclerItemsForPlayer(player, recycler);
                 player.EndLooting();
                 _afkTimers.Remove(player);
             });
@@ -184,6 +185,23 @@ namespace Oxide.Plugins
         }
 
         #endregion Recycling Player Retrieval
+
+        #region Recycler Item Collection
+
+        private void CollectRecyclerItemsForPlayer(BasePlayer player, Recycler recycler)
+        {
+            for (int i = recycler.inventory.itemList.Count - 1; i >= 0; i--)
+            {
+                Item item = recycler.inventory.itemList[i];
+
+                if (!player.inventory.GiveItem(item))
+                {
+                    item.Drop(player.transform.position, Vector3.up);
+                }
+            }
+        }
+
+        #endregion Recycler Item Collection
 
         #region Permissions
 
